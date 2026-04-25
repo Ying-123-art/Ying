@@ -4,6 +4,7 @@ const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerSta
 const gTTS = require('gtts');
 const path = require('path');
 const fs = require('fs');
+const play = require('play-dl');
 
 // 1. Cấu hình Bot
 const client = new Client({
@@ -45,6 +46,37 @@ function botSpeak(channel, text) {
     }
 }
 
+// Hàm phát nhạc từ YouTube
+async function playYouTube(channel, url, message) {
+    try {
+        const connection = joinVoiceChannel({
+            channelId: channel.id,
+            guildId: channel.guild.id,
+            adapterCreator: channel.guild.voiceAdapterCreator,
+        });
+
+        const stream = await play.stream(url);
+        const resource = createAudioResource(stream.stream, {
+            inputType: stream.type
+        });
+        const player = createAudioPlayer();
+
+        player.play(resource);
+        connection.subscribe(player);
+
+        player.on(AudioPlayerStatus.Playing, () => {
+            message.channel.send('▶️ Đang phát nhạc!');
+        });
+
+        player.on('error', error => {
+            console.error('Lỗi Audio Player:', error.message);
+        });
+    } catch (error) {
+        console.error("Lỗi phát nhạc YouTube:", error);
+        message.reply("❌ Lỗi phát nhạc. Hãy chắc chắn đó là một link YouTube hợp lệ!");
+    }
+}
+
 // 3. Sự kiện: Chào khi có người vào Room
 client.on('voiceStateUpdate', (oldState, newState) => {
     // Nếu người dùng mới vào room (trước đó không ở room nào)
@@ -57,7 +89,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 });
 
-// 4. Sự kiện: Đọc chat qua lệnh "y "
+// 4. Sự kiện: Xử lý tin nhắn (đọc chat, phát nhạc)
 client.on('messageCreate', (message) => {
     if (message.author.bot) return;
 
@@ -69,6 +101,18 @@ client.on('messageCreate', (message) => {
             botSpeak(voiceChannel, textToSay);
         } else {
             message.reply("Vào room voice đi rồi tôi mới nói được!");
+        }
+    }
+
+    // Lệnh phát nhạc: p <link youtube>
+    if (message.content.startsWith('p ')) {
+        const url = message.content.replace('p ', '').trim();
+        const voiceChannel = message.member.voice.channel;
+
+        if (voiceChannel) {
+            playYouTube(voiceChannel, url, message);
+        } else {
+            message.reply("Vào room voice đi rồi tôi mới bật nhạc được!");
         }
     }
 });
