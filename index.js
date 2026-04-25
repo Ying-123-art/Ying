@@ -118,8 +118,8 @@ client.on('messageCreate', (message) => {
 });
 
 // 5. Đăng nhập
-client.once('ready', () => {
-    console.log(`✅ Bot ${client.user.tag} đã online!`);
+client.once('clientReady', (c) => {
+    console.log(`✅ Bot ${c.user.tag} đã online và sẵn sàng!`);
 });
 
 // THAY TOKEN MỚI SAU KHI RESET VÀO ĐÂY
