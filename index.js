@@ -5,6 +5,8 @@ const gTTS = require('gtts');
 const path = require('path');
 const fs = require('fs');
 const play = require('play-dl');
+const ffmpegPath = require('ffmpeg-static');
+process.env.FFMPEG_PATH = ffmpegPath;
 
 // 1. Cấu hình Bot
 const client = new Client({
@@ -40,6 +42,9 @@ function botSpeak(channel, text) {
             player.on(AudioPlayerStatus.Idle, () => {
                 // Thêm dòng connection.destroy() nếu muốn bot nói xong rồi rời room
             });
+        });
+        const resource = createAudioResource(filePath, {
+            inputType: StreamType.Arbitrary, // Thêm dòng này nếu cần
         });
     } catch (error) {
         console.error("Lỗi kết nối Voice:", error);
