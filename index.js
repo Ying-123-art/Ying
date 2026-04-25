@@ -79,4 +79,12 @@ client.once('ready', () => {
 });
 
 // THAY TOKEN MỚI SAU KHI RESET VÀO ĐÂY
-client.login(process.env.DISCORD_TOKEN);
+const token = process.env.DISCORD_TOKEN;
+
+if (!token) {
+    console.error("❌ LỖI: Biến DISCORD_TOKEN chưa được thiết lập trên Railway!");
+} else {
+    client.login(token).catch(err => {
+        console.error("❌ LỖI LOGIN:", err.message);
+    });
+}
