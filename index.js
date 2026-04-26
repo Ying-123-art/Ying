@@ -84,6 +84,7 @@ async function playYouTube(channel, url, message) {
 
 // 3. Sự kiện: Chào khi có người vào Room
 client.on('voiceStateUpdate', (oldState, newState) => {
+    /* Tạm thời tắt tính năng tự động vào room
     // Nếu người dùng mới vào room (trước đó không ở room nào)
     if (!oldState.channelId && newState.channelId && !newState.member.user.bot) {
         const userName = newState.member.displayName; 
@@ -92,11 +93,28 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         console.log(`📢 Thông báo: ${message}`);
         botSpeak(newState.channel, message);
     }
+    */
 });
 
 // 4. Sự kiện: Xử lý tin nhắn (đọc chat, phát nhạc)
 client.on('messageCreate', (message) => {
     if (message.author.bot) return;
+
+    // Lệnh yjoin cho bot vào phòng thoại
+    if (message.content.toLowerCase() === 'yjoin') {
+        const voiceChannel = message.member.voice.channel;
+        if (voiceChannel) {
+            joinVoiceChannel({
+                channelId: voiceChannel.id,
+                guildId: voiceChannel.guild.id,
+                adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+            });
+            message.reply("✅ Bot đã tham gia phòng thoại!");
+        } else {
+            message.reply("❌ Bạn cần vào một phòng thoại trước khi sử dụng lệnh này!");
+        }
+        return;
+    }
 
     if (message.content.startsWith('y ')) {
         const textToSay = message.content.replace('y ', '');
